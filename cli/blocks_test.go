@@ -93,31 +93,39 @@ var testcases = []struct {
 	{
 		name:       "Go fmt verbs",
 		sourcefile: "testdata/fmt_compat.go",
-		lineCount:  33,
+		lineCount:  41,
 		expectedBlocks: []block{
 			{
 				startLine: 8,
-				endLine:   14,
+				endLine:   18,
 				text: `resource "aws_s3_bucket" "no-errors" {
   bucket = "tf-test-bucket-no-errors-%d"
 
   %s
+
+  tags = {
+    %[1]q = %[2]q
+  }
 }`,
 			},
 			{
-				startLine: 18,
-				endLine:   22,
+				startLine: 22,
+				endLine:   26,
 				text: `resource "aws_s3_bucket" "absolutely-nothing" {
   bucket = "tf-test-bucket-absolutely-nothing"
 }`,
 			},
 			{
-				startLine: 26,
-				endLine:   32,
+				startLine: 30,
+				endLine:   40,
 				text: `resource "aws_s3_bucket" "extra-space" {
   bucket    = "tf-test-bucket-extra-space-%d"
 
   %s
+
+  tags = {
+    %[1]q    = %[2]q
+  }
 }`,
 			},
 		},
@@ -224,7 +232,7 @@ func TestCmdBlocksDefault(t *testing.T) {
 			}
 
 			if actualStdOut != expected {
-				t.Errorf("Output does not match expected:\n%s", diff.Diff(actualStdOut, expected))
+				t.Errorf("Output does not match expected: ('-' actual, '+' expected)\n%s", diff.Diff(actualStdOut, expected))
 			}
 
 			if actualStdErr != "" {
@@ -290,7 +298,7 @@ func TestCmdBlocksZeroTerminated(t *testing.T) {
 			}
 
 			if actualStdOut != expected {
-				t.Errorf("Output does not match expected:\n%s", diff.Diff(actualStdOut, expected))
+				t.Errorf("Output does not match expected: ('-' actual, '+' expected)\n%s", diff.Diff(actualStdOut, expected))
 			}
 
 			if actualStdErr != "" {
@@ -337,7 +345,7 @@ func TestCmdBlocksJson(t *testing.T) {
 			}
 
 			if !equivalentJSON([]byte(actualStdOut), expected) {
-				t.Errorf("Output does not match expected:\n%s", diff.Diff(actualStdOut, string(expected)))
+				t.Errorf("Output does not match expected: ('-' actual, '+' expected)\n%s", diff.Diff(actualStdOut, string(expected)))
 			}
 
 			if actualStdErr != "" {
@@ -384,7 +392,7 @@ func TestCmdBlocksFmtVerbsJson(t *testing.T) {
 			}
 
 			if !equivalentJSON([]byte(actualStdOut), expected) {
-				t.Errorf("Output does not match expected:\n%s", diff.Diff(actualStdOut, string(expected)))
+				t.Errorf("Output does not match expected: ('-' actual, '+' expected)\n%s", diff.Diff(actualStdOut, string(expected)))
 			}
 
 			if actualStdErr != "" {

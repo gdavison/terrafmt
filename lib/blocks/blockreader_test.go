@@ -109,7 +109,7 @@ func TestBlockDetection(t *testing.T) {
 			expected := strings.TrimSpace(expectedResults.ExpectedResults[i])
 			actual = strings.TrimSpace(actual)
 			if actual != expected {
-				t.Errorf("Case %q, block %d:\n%s", testcase.sourcefile, i+1, diff.Diff(expected, actual))
+				t.Errorf("Case %q, block %d: ('-' actual, '+' expected)\n%s", testcase.sourcefile, i+1, diff.Diff(expected, actual))
 				continue
 			}
 		}
