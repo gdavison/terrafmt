@@ -47,7 +47,7 @@ func Block(log *logrus.Logger, b string) (string, error) {
 	cmd.Stderr = stderr
 	err = cmd.Run()
 	if err != nil {
-		return "", fmt.Errorf("cmd.Run() failed in terraform init with %s: %s", err, stderr)
+		return "", fmt.Errorf("cmd.Run() failed in terraform init with %w: %s", err, stderr)
 	}
 
 	log.Debugf("running terraform... ")
@@ -61,12 +61,12 @@ func Block(log *logrus.Logger, b string) (string, error) {
 	err = cmd.Run()
 
 	if err != nil {
-		_, err := fmt.Println(stdout)
-		if err != nil {
-			return "", fmt.Errorf("cmd.Run() failed in terraform 0.12upgrade with %s: %s | %s", err, stdout, stderr)
+		_, printErr := fmt.Println(stdout)
+		if printErr != nil {
+			return "", fmt.Errorf("cmd.Run() failed in terraform 0.12upgrade with %w: %s | %s", err, stdout, stderr)
 		}
 
-		return "", fmt.Errorf("cmd.Run() failed in terraform 0.12upgrade with %s: %s", err, stderr)
+		return "", fmt.Errorf("cmd.Run() failed in terraform 0.12upgrade with %w: %s", err, stderr)
 	}
 
 	ec := cmd.ProcessState.ExitCode()
@@ -78,7 +78,7 @@ func Block(log *logrus.Logger, b string) (string, error) {
 	// Read from temp file
 	raw, err := ioutil.ReadFile(tmpFile.Name())
 	if err != nil {
-		return "", fmt.Errorf("terrafmt failed with readfile: %s", err)
+		return "", fmt.Errorf("terrafmt failed with readfile: %w", err)
 	}
 
 	// 0.12upgrade always adds a trailing newline, even if it's already there
