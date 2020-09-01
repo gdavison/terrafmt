@@ -35,18 +35,18 @@ var fmtTestcases = []struct {
 		name:              "Go formatting",
 		sourcefile:        "testdata/has_diffs.go",
 		resultfile:        "testdata/has_diffs_fmt.go",
-		lineCount:         39,
-		updatedBlockCount: 2,
-		totalBlockCount:   4,
+		lineCount:         78,
+		updatedBlockCount: 3,
+		totalBlockCount:   5,
 	},
 	{
 		name:              "Go formatting, fix finish line",
 		sourcefile:        "testdata/has_diffs.go",
 		resultfile:        "testdata/has_diffs_fmt_fix_finish.go",
 		fixFinishLines:    true,
-		lineCount:         39,
-		updatedBlockCount: 3,
-		totalBlockCount:   4,
+		lineCount:         78,
+		updatedBlockCount: 4,
+		totalBlockCount:   5,
 	},
 	{
 		name:       "Go fmt verbs",
@@ -279,6 +279,10 @@ func TestCmdFmtFileDefault(t *testing.T) {
 			actualContent := c.String(string(data))
 			if actualContent != expected {
 				t.Errorf("Case %q: File does not match expected: ('-' actual, '+' expected)\n%s", testcase.name, diff.Diff(actualContent, expected))
+			}
+
+			if testcase.errorBlockCount != br.ErrorBlocks {
+				t.Errorf("Expected %d block errors, got %d", testcase.errorBlockCount, br.ErrorBlocks)
 			}
 
 			if testcase.errorBlockCount != br.ErrorBlocks {
