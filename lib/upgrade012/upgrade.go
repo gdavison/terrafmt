@@ -87,6 +87,7 @@ func Block(log *logrus.Logger, b string) (string, error) {
 	if strings.HasSuffix(fb, "\n\n") {
 		fb = strings.TrimSuffix(fb, "\n")
 	}
+	// fb := strings.TrimSuffix(string(raw), "\n")
 
 	return fb, nil
 }

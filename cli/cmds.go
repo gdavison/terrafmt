@@ -5,6 +5,8 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"go/ast"
+	"go/token"
 	"io"
 	"os"
 	"os/exec"
@@ -410,7 +412,7 @@ func findBlocksInFile(fs afero.Fs, log *logrus.Logger, filename string, verbose,
 		},
 	}
 
-	err := br.DoTheThing(fs, filename, stdin, stdout)
+	err := br.DoTheThingNew(fs, filename, stdin, stdout)
 	if err != nil {
 		return err
 	}
@@ -472,7 +474,7 @@ func diffFile(fs afero.Fs, log *logrus.Logger, filename string, fmtverbs, verbos
 		},
 	}
 
-	err := br.DoTheThing(fs, filename, stdin, stdout)
+	err := br.DoTheThingNew(fs, filename, stdin, stdout)
 	if err != nil {
 		return nil, false, err
 	}
@@ -509,17 +511,43 @@ func formatFile(fs afero.Fs, log *logrus.Logger, filename string, fmtverbs, fixF
 				return err
 			}
 
-			_, err = br.Writer.Write([]byte(fb))
+			hasChange := fb != b
 
-			if err == nil && fb != b {
-				blocksFormatted++
+			if br.CurrentNodeCursor != nil {
+				fb = strings.TrimSuffix(fb, "\n")
+
+				if br.FixFinishLines {
+					trimmed := strings.TrimRight(br.CurrentNodeTrailingPadding, " \t")
+					if trimmed != br.CurrentNodeTrailingPadding {
+						br.CurrentNodeTrailingPadding = trimmed
+						hasChange = true
+					}
+				}
+
+				if hasChange {
+					br.CurrentNodeCursor.Replace(&ast.BasicLit{
+						Kind: token.STRING,
+						Value: br.CurrentNodeQuoteChar +
+							br.CurrentNodeLeadingPadding +
+							fb +
+							br.CurrentNodeTrailingPadding +
+							br.CurrentNodeQuoteChar,
+					})
+					blocksFormatted++
+				}
+			} else {
+				_, err = br.Writer.Write([]byte(fb))
+
+				if err == nil && hasChange {
+					blocksFormatted++
+				}
 			}
 
 			return err
 		},
 		FixFinishLines: fixFinishLines,
 	}
-	err := br.DoTheThing(fs, filename, stdin, stdout)
+	err := br.DoTheThingNew(fs, filename, stdin, stdout)
 
 	fc := "magenta"
 	if blocksFormatted > 0 {
@@ -546,19 +574,38 @@ func upgrade012File(fs afero.Fs, log *logrus.Logger, filename string, fmtverbs, 
 			} else {
 				fb, err = upgrade012.Block(log, b)
 			}
-
 			if err != nil {
 				return err
 			}
 
-			if _, err = br.Writer.Write([]byte(fb)); err == nil && fb != b {
-				blocksFormatted++
+			hasChange := fb != b
+
+			if br.CurrentNodeCursor != nil {
+				fb = strings.TrimSuffix(fb, "\n")
+
+				if hasChange {
+					br.CurrentNodeCursor.Replace(&ast.BasicLit{
+						Kind: token.STRING,
+						Value: br.CurrentNodeQuoteChar +
+							br.CurrentNodeLeadingPadding +
+							fb +
+							br.CurrentNodeTrailingPadding +
+							br.CurrentNodeQuoteChar,
+					})
+					blocksFormatted++
+				}
+			} else {
+				_, err = br.Writer.Write([]byte(fb))
+
+				if err == nil && hasChange {
+					blocksFormatted++
+				}
 			}
 
 			return nil
 		},
 	}
-	err := br.DoTheThing(fs, filename, stdin, stdout)
+	err := br.DoTheThingNew(fs, filename, stdin, stdout)
 	if err != nil {
 		return &br, err
 	}
